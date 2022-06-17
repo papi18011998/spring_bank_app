@@ -1,10 +1,12 @@
 package com.example.digital_banking_backend.services;
 
+import com.example.digital_banking_backend.dtos.CustomerDTO;
 import com.example.digital_banking_backend.entities.*;
 import com.example.digital_banking_backend.enums.OperationType;
 import com.example.digital_banking_backend.exception.BalanceAccountInsufficentException;
 import com.example.digital_banking_backend.exception.BankAccountException;
 import com.example.digital_banking_backend.exception.CustomerNotFoundException;
+import com.example.digital_banking_backend.mappers.BankAccountMapperImpl;
 import com.example.digital_banking_backend.repositories.AccountOperationRepository;
 import com.example.digital_banking_backend.repositories.BankAccountRepository;
 import com.example.digital_banking_backend.repositories.CustomerRepository;
@@ -16,15 +18,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 @AllArgsConstructor
 @Slf4j
 public class BankAccountServiceImpl implements BankAccountService {
+    private BankAccountMapperImpl bankAccountMapper;
     private CustomerRepository customerRepository;
     private BankAccountRepository bankAccountRepository;
     private AccountOperationRepository accountOperationRepository;
@@ -71,9 +76,15 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public List<Customer> listCustomer() {
+    public List<CustomerDTO> listCustomer() {
         List<Customer> customers = customerRepository.findAll();
-        return customers;
+//        List<CustomerDTO> customerDTO = new ArrayList<>();
+//        customers.forEach(customer -> {
+//            customerDTO.add(bankAccountMapper.fromCustomer(customer));
+//        });
+        List<CustomerDTO> customerDTO = customers.stream().map(customer -> bankAccountMapper.fromCustomer(customer))
+                                                            .collect(Collectors.toList());
+        return customerDTO;
     }
 
     @Override
