@@ -12,13 +12,9 @@ import com.example.digital_banking_backend.repositories.BankAccountRepository;
 import com.example.digital_banking_backend.repositories.CustomerRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.bytebuddy.implementation.bytecode.Throw;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -35,10 +31,11 @@ public class BankAccountServiceImpl implements BankAccountService {
     private AccountOperationRepository accountOperationRepository;
 //    Logger logger = LoggerFactory.getLogger(this.getClass().getName());
     @Override
-    public Customer saveCustomer(Customer customer) {
+    public CustomerDTO saveCustomer(CustomerDTO customerDTO) {
         log.info("Saving new customer ...");
-        Customer savedCustomer = customerRepository.save(customer);
-        return savedCustomer;
+        Customer savedCustomer = bankAccountMapper.formCustomeDTO(customerDTO);
+        customerRepository.save(savedCustomer);
+        return bankAccountMapper.fromCustomer(savedCustomer);
     }
 
     @Override
@@ -136,5 +133,11 @@ public class BankAccountServiceImpl implements BankAccountService {
     public void transfert(String accountIdSource, String accountIdDestination, double amount) throws BankAccountException, BalanceAccountInsufficentException {
         debit(accountIdSource,amount,"Transfer to "+accountIdDestination);
         credit(accountIdDestination,amount,"Transfer from"+ accountIdSource);
+    }
+    @Override
+    public CustomerDTO getCustomer(Long id) throws CustomerNotFoundException {
+        Customer customer = customerRepository.findById(id).orElseThrow(()->new CustomerNotFoundException("Customer not found"));
+        CustomerDTO customerDTO = bankAccountMapper.fromCustomer(customer);
+        return customerDTO;
     }
 }
